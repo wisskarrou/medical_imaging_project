@@ -58,14 +58,13 @@ if args.cuda:
     print("\nGPU is ON!")
 
 # Build train and test sets
-data_dir = WindowsPath("c:/Users/Wissam/Nextcloud/Documents/MVA/owkin_challenge/")
 
 # load the training and testing data sets
-train_features_dir = data_dir / "train_input" / "moco_features"
-test_features_dir = data_dir / "test_input" / "moco_features"
-df_train = pd.read_csv(data_dir / "supplementary_data" / "train_metadata.csv")
+train_features_dir = "train_input" / "moco_features"
+test_features_dir = "test_input" / "moco_features"
+df_train = pd.read_csv("supplementary_data" / "train_metadata.csv")
 # concatenate y_train and df_train
-y_train = pd.read_csv(data_dir  / "train_output.csv")
+y_train = pd.read_csv("train_output.csv")
 df_train = df_train.merge(y_train, on="Sample ID")
 
 X_train_mean = []
