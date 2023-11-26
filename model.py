@@ -7,14 +7,10 @@ class GatedAttention(nn.Module):
     def __init__(self):
         super(GatedAttention, self).__init__()
         self.nb_features = 2048
-        self.L = 128
-        self.D = 128
+        self.L = 256
+        self.D = 256
 
         self.fc1 = nn.Sequential(nn.Linear(self.nb_features, self.L))
-
-        #self.bn1 = nn.BatchNorm1d(1000)
-
-        #self.fc1bis = nn.Sequential(nn.Linear(256, self.L))
 
         self.attention_V = nn.Sequential(nn.Linear(self.L, self.D), nn.Tanh())
 
@@ -22,30 +18,26 @@ class GatedAttention(nn.Module):
 
         self.attention_weights = nn.Sequential(nn.Linear(self.D, 1))
 
-        #self.fc2 = nn.Sequential(nn.Linear(self.L, 128), nn.Tanh())
+        self.fc2 = nn.Sequential(nn.Linear(self.L, 128), nn.Tanh())
 
-        #self.fc3 = nn.Sequential(nn.Linear(128, 64), nn.Tanh())
+        self.fc3 = nn.Sequential(nn.Linear(128, 64), nn.Tanh())
 
-        self.classifier = nn.Sequential(nn.Linear(128, 1), nn.Sigmoid())
+        self.classifier = nn.Sequential(nn.Linear(64, 1), nn.Sigmoid())
 
     def forward(self, x):
         # x is of size N x nb_features
         # N:number of tiles corresponding to the WSI
         # nb_features:number of features per tile
         x = self.fc1(x)  # NxL
-        #x = self.bn1(x)
-        #x = self.fc1bis(x)
         A_V = self.attention_V(x)  # NxD
         A_U = self.attention_U(x)  # NxD
         A = self.attention_weights(A_V * A_U)  # element wise multiplication # NxK
-        #A = self.attention_weights(A_V)
         A = torch.transpose(A, 1, 2)  # KxN
-        #A = F.softmax(A*1000/A.shape[2], dim=2)  # softmax over N
         A = F.softmax(A, dim=2)
         M = torch.matmul(A, x)  # KxL
         M = M.squeeze(1)
-        #M = self.fc2(M)  # Kx128
-        #M = self.fc3(M)  # Kx64
+        M = self.fc2(M)  # Kx128
+        M = self.fc3(M)  # Kx64
         Y_prob = self.classifier(M)
         Y_hat = torch.ge(Y_prob, 0.5).float()
 
@@ -92,13 +84,9 @@ class GatedAttentionDomainAdaptation(nn.Module):
         super(GatedAttentionDomainAdaptation, self).__init__()
         self.nb_features = 2048
         self.L = 256
-        self.D = 128
+        self.D = 256
 
         self.fc1 = nn.Sequential(nn.Linear(self.nb_features, self.L))
-
-        #self.bn1 = nn.BatchNorm1d(1000)
-
-        #self.fc1bis = nn.Sequential(nn.Linear(256, self.L))
 
         self.attention_V = nn.Sequential(nn.Linear(self.L, self.D), nn.Tanh())
 
@@ -106,9 +94,9 @@ class GatedAttentionDomainAdaptation(nn.Module):
 
         self.attention_weights = nn.Sequential(nn.Linear(self.D, 1))
 
-        self.fc2 = nn.Sequential(nn.Linear(self.L, 64), nn.Tanh())
+        self.fc2 = nn.Sequential(nn.Linear(self.L, 128), nn.Tanh())
 
-        #self.fc3 = nn.Sequential(nn.Linear(128, 64), nn.Tanh())
+        self.fc3 = nn.Sequential(nn.Linear(128, 64), nn.Tanh())
 
         self.center_classifier = nn.Sequential(nn.Linear(64,32),nn.Tanh(),nn.Linear(32,5))
 
@@ -131,7 +119,7 @@ class GatedAttentionDomainAdaptation(nn.Module):
         M = torch.matmul(A, x)  # KxL
         M = M.squeeze(1)
         M = self.fc2(M)  # Kx128
-        #M = self.fc3(M)  # Kx64
+        M = self.fc3(M)  # Kx64
         Y_prob = self.classifier(M)
         input = GradReverse.grad_reverse(M, constant)
         Y_prob_center = self.center_classifier(input)
