@@ -1,6 +1,8 @@
 # Medical imaging project
 My solution to a data challenge:
 
+*report.pdf: the report presenting my work on this data challenge, my different attempts and the results obtained
+
 *train_input/moco_features: the features of the tiles of the slides of all patients of the training set
 
 *test_input/moco_features: the features of the tiles of the slides of all patients of the test set
